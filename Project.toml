@@ -1,0 +1,13 @@
+name = "AdventOfCode2023"
+uuid = "f2ee7879-578e-46fe-aaf2-38393bf3ac16"
+authors = ["Joao Areias <joaoareiasmoraes@gmail.com> and contributors"]
+version = "1.0.0-DEV"
+
+[compat]
+julia = "1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
