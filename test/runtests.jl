@@ -4,3 +4,6 @@ using Test
 @testset "AdventOfCode2023.jl" begin
     # Write your tests here.
 end
+
+@testset "AhoCorasick.jl" begin
+end
