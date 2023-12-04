@@ -44,15 +44,12 @@ function read_data(args::Dict{String, Any})
 
 	if !isnothing(args["file"])
 		open(args["file"], "r") do file
-			for line in eachline(file)
-				push!(lines, line)
-			end
+			lines = readlines(file)
 		end
 	else
 		while !eof(stdin)
-		line = readline(stdin)
+			line = readline(stdin)
 			push!(lines, line)
-	
 		end
 	end
 
