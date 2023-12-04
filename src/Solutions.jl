@@ -87,10 +87,50 @@ function day_2_solution(data)
 end
 
 # ------------------------------ Day 3 ------------------------------ 
+using DataStructures
 function issymbol(c::Char)
 	return !isdigit(c) && c != '.'
 end
 
+"""
+check_neighboors(data, pos, bounds)
+
+Verify the neighboorhood of a character at position `pos`
+and returns the symbols on the neighboorhood
+"""
+function check_neighboors(data, pos, bounds)
+	symbols = Set() 
+
+	i, j = pos
+	m, n = bounds
+
+	if (j > 1 && issymbol(data[i][j-1])) # Left
+		push!(symbols, (data[i][j-1], i, j-1)) 
+	end
+	if (j < n && issymbol(data[i][j+1])) # Right
+		push!(symbols, (data[i][j+1], i, j+1)) 
+	end
+	if (i > 1 && issymbol(data[i-1][j])) # Up
+		push!(symbols, (data[i-1][j], i-1, j)) 
+	end
+	if (i > 1 && j > 1 && issymbol(data[i-1][j-1])) # Up-Left
+		push!(symbols, (data[i-1][j-1], i-1, j-1)) 
+	end
+	if (i > 1 && j < m && issymbol(data[i-1][j+1])) # Up-Right
+		push!(symbols, (data[i-1][j+1], i-1, j+1)) 
+	end
+	if (i < m && issymbol(data[i+1][j])) # Down
+		push!(symbols, (data[i+1][j], i+1, j)) 
+	end
+	if (i < m && j > 1 && issymbol(data[i+1][j-1])) # Down-Left
+		push!(symbols, (data[i+1][j-1], i+1, j-1)) 
+	end
+	if (i < m && j < m && issymbol(data[i+1][j+1]))     # Down-Right
+		push!(symbols, (data[i+1][j+1], i+1, j+1)) 
+	end
+
+	return symbols
+end
 
 function day_3_solution(data)
 	total = 0
@@ -100,9 +140,11 @@ function day_3_solution(data)
 	m = length(data)
 	n = length(data[1])
 
+	symbols = DefaultDict{Tuple{Char, Int, Int}, Vector{Int}}(() -> Vector{Int}()) 
+	neighboors = Set()
+
 	for (i, line) in enumerate(data)
 		is_num = false
-		adjecent_to_symbol = false
 		num_start = -1
 
 		for (j, ch) in enumerate(line)
@@ -113,41 +155,42 @@ function day_3_solution(data)
 					num_start = j
 				end
 
-				# Check if there are any symbols adjencent to the number
-				adjecent_to_symbol = (
-					adjecent_to_symbol ||                            # Short-Circuit if we already know it's adjecent 
-					(j > 1 && issymbol(line[j-1])) ||                # Left
-					(j < n && issymbol(line[j+1])) ||                # Right
-					(i > 1 && issymbol(data[i-1][j])) ||             # Up
-					(i > 1 && j > 1 && issymbol(data[i-1][j-1])) ||  # Up-Left
-					(i > 1 && j < m && issymbol(data[i-1][j+1])) ||  # Up-Right
-					(i < m && issymbol(data[i+1][j])) ||             # Down
-					(i < m && j > 1 && issymbol(data[i+1][j-1])) ||  # Down-Left
-					(i < m && j < m && issymbol(data[i+1][j+1]))     # Down-Right
-				)
-
+				neighboors = union(neighboors, check_neighboors(data, (i, j), (m, n)))	
 				# If it's the last charactere we need to parse the number here
-				# only parses if number is adjecent 
-				if adjecent_to_symbol && j == n
-					total += parse(Int, line[num_start:j])
+				# only parses if number is adjecent to a symbol 
+				if j == n && !isempty(neighboors)
+					# Add numbers to the adjecency list of the symbols
+					number = parse(Int, line[num_start:j])
+					for symbol in neighboors
+						push!(symbols[symbol], number)
+					end
+					# Reset variables
 					is_num = false
-					num_start = -1
-					adjecent_to_symbol = false
+					empty!(neighboors)
 				end
 			elseif is_num
 				# Represents the end if a number
 				# only parses the number if it is ajecent to a symbol
-				if adjecent_to_symbol
-					total += parse(Int, line[num_start:j-1])
+				if !isempty(neighboors)
+					# Add numbers to the adjecency list of the symbols
+					number = parse(Int, line[num_start:j-1])
+					for symbol in neighboors
+						push!(symbols[symbol], number)
+					end
 				end
+				# Reset variables
 				is_num = false
-				adjecent_to_symbol = false
-				num_start = -1
+				empty!(neighboors)
 			end
 		end
 	end
 
-	return total
+	for (k, v) in pairs(symbols)
+		if k[1] == '*' && length(v) == 2
+			total += v[1] * v[2]	
+		end
+	end
+	return total 
 end
 
 
